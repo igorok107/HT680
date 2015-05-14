@@ -7,7 +7,11 @@ unsigned char BitCount;
 unsigned short int TIM1_PSCR = 8;
 unsigned char Flag;
 
-/*Выбор генератора (0xE1 - HSI; 0xD2 - LSI; 0xB4 - HSE)*/
+//РљРѕРґ РєРЅРѕРїРѕРє
+#define CODE_BUT1 0x8EBA
+#define CODE_BUT2 0x8EEA
+
+/*Р’С‹Р±РѕСЂ РіРµРЅРµСЂР°С‚РѕСЂР° (0xE1 - HSI; 0xD2 - LSI; 0xB4 - HSE)*/
 //#define HSE 0xB4
 #define HSI 0xE1
 #define LSI 0xD2
@@ -16,7 +20,7 @@ unsigned char Flag;
 
 void delay_ms(unsigned int t)
 {
-  CLK_SWR = LSI; //Выбор LSI генератора
+  CLK_SWR = LSI; //Р’С‹Р±РѕСЂ LSI РіРµРЅРµСЂР°С‚РѕСЂР°
   while (CLK_SWCR_SWBSY);
   
   while (t > 0) 
@@ -29,7 +33,7 @@ void delay_ms(unsigned int t)
 }
 
 void init(void){
-#ifdef HSI
+#ifdef LSI
   CLK_ICKR_LSIEN = 1;
 #else
   CLK_ICKR_LSIEN = 0;
@@ -45,46 +49,46 @@ void init(void){
 #else
   CLK_ECKR_HSEEN = 0;
 #endif
-  CLK_CKDIVR = 0; //Делитель  
+  CLK_CKDIVR = 0; //Р”РµР»РёС‚РµР»СЊ  
   CLK_SWCR = 0; //Reset the clock switch control register.
-  CLK_SWCR_SWEN = 1; //Переключение на выбранный генератор  
+  CLK_SWCR_SWEN = 1; //РџРµСЂРµРєР»СЋС‡РµРЅРёРµ РЅР° РІС‹Р±СЂР°РЅРЅС‹Р№ РіРµРЅРµСЂР°С‚РѕСЂ  
   CLK_SWR = CLK_DEF; 
   
   while (CLK_SWCR_SWBSY);
   
-  //Прерывания внешение
-  EXTI_CR1_PCIS = 2; //Прерывание на порт C (0: падающий и низкий уровень, 1: возрастающий, 2: падающий, 3: оба)  
-  PC_CR1_C17=1; //Подтяжка вверх
-  PC_CR2_C27=1; //Разрешаем прерывания
-  CPU_CFG_GCR_AL = 1; //Прерывания во сне
+  //РџСЂРµСЂС‹РІР°РЅРёСЏ РІРЅРµС€РµРЅРёРµ
+  EXTI_CR1_PCIS = 2; //РџСЂРµСЂС‹РІР°РЅРёРµ РЅР° РїРѕСЂС‚ C (0: РїР°РґР°СЋС‰РёР№ Рё РЅРёР·РєРёР№ СѓСЂРѕРІРµРЅСЊ, 1: РІРѕР·СЂР°СЃС‚Р°СЋС‰РёР№, 2: РїР°РґР°СЋС‰РёР№, 3: РѕР±Р°)  
+  PC_CR1_C17=1; //РџРѕРґС‚СЏР¶РєР° РІРІРµСЂС…
+  PC_CR2_C27=1; //Р Р°Р·СЂРµС€Р°РµРј РїСЂРµСЂС‹РІР°РЅРёСЏ
+  CPU_CFG_GCR_AL = 1; //РџСЂРµСЂС‹РІР°РЅРёСЏ РІРѕ СЃРЅРµ
   
-  //Таймер для задержки ms
+  //РўР°Р№РјРµСЂ РґР»СЏ Р·Р°РґРµСЂР¶РєРё ms
   TIM4_CNTR = 0;
-  TIM4_PSCR_PSC = 0; //Предделитель
+  TIM4_PSCR_PSC = 0; //РџСЂРµРґРґРµР»РёС‚РµР»СЊ
   TIM4_ARR = 127;
   TIM4_CR1_URS = 1;
-  TIM4_EGR_UG = 1;  //Вызываем Update Event
+  TIM4_EGR_UG = 1;  //Р’С‹Р·С‹РІР°РµРј Update Event
   TIM4_CR1_CEN = 1;
   
-  //Таймер 1
-  TIM1_CR1_URS = 1; //Прерывание только по переполнению счетчика  
-  TIM1_IER_UIE = 1; // Разрешаем прерывания  
+  //РўР°Р№РјРµСЂ 1
+  TIM1_CR1_URS = 1; //РџСЂРµСЂС‹РІР°РЅРёРµ С‚РѕР»СЊРєРѕ РїРѕ РїРµСЂРµРїРѕР»РЅРµРЅРёСЋ СЃС‡РµС‚С‡РёРєР°  
+  TIM1_IER_UIE = 1; // Р Р°Р·СЂРµС€Р°РµРј РїСЂРµСЂС‹РІР°РЅРёСЏ  
   
   //GPIO
-  PA_DDR_DDR3 = 1; //Настраиваем 4й пин порта A на выход
-  PA_CR1_C13 = 1; //Переключаем его в режим push-pull
+  PA_DDR_DDR3 = 1; //РќР°СЃС‚СЂР°РёРІР°РµРј 4Р№ РїРёРЅ РїРѕСЂС‚Р° A РЅР° РІС‹С…РѕРґ
+  PA_CR1_C13 = 1; //РџРµСЂРµРєР»СЋС‡Р°РµРј РµРіРѕ РІ СЂРµР¶РёРј push-pull
 };
 
 void RESET (void)
 {
-  TIM1_CR1_CEN = 0; //Остановка таймера
-  TIM1_CNTRH = 0; // Сброс счётчика
+  TIM1_CR1_CEN = 0; //РћСЃС‚Р°РЅРѕРІРєР° С‚Р°Р№РјРµСЂР°
+  TIM1_CNTRH = 0; // РЎР±СЂРѕСЃ СЃС‡С‘С‚С‡РёРєР°
   TIM1_CNTRL = 0;  
-  TIM1_PSCRH = TIM1_PSCR >> 8; // Установка пределителя тактовой частоты
+  TIM1_PSCRH = TIM1_PSCR >> 8; // РЈСЃС‚Р°РЅРѕРІРєР° РїСЂРµРґРµР»РёС‚РµР»СЏ С‚Р°РєС‚РѕРІРѕР№ С‡Р°СЃС‚РѕС‚С‹
   TIM1_PSCRL = TIM1_PSCR & 0xFF;
-  TIM1_ARRH = 21845 >> 8; // Уровень переполнения
+  TIM1_ARRH = 21845 >> 8; // РЈСЂРѕРІРµРЅСЊ РїРµСЂРµРїРѕР»РЅРµРЅРёСЏ
   TIM1_ARRL = 21845 & 0xFF;
-  TIM1_EGR_UG = 1;  //Вызываем Update Event  (Обновляем пределитель)
+  TIM1_EGR_UG = 1;  //Р’С‹Р·С‹РІР°РµРј Update Event  (РћР±РЅРѕРІР»СЏРµРј РїСЂРµРґРµР»РёС‚РµР»СЊ)
   
   PreAmb = 1;
   Data = 0;
@@ -119,10 +123,10 @@ __interrupt void TIM1_Interrupt(void)
       {
         switch (Data & 0xFFFF)
         {
-        case 0x8EBA: // Кнопка 1
+        case CODE_BUT1: // РљРЅРѕРїРєР° 1
           Button1();
           break;
-        case 0x8EEA: // Кнопка 2
+        case CODE_BUT2: // РљРЅРѕРїРєР° 2
           Button2();
           break;
         }
